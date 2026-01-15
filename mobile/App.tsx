@@ -1,4 +1,5 @@
 import React from 'react';
+import { ClerkProvider } from '@clerk/clerk-expo';
 import { NavigationContainer, DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
@@ -9,6 +10,8 @@ import DashboardScreen from './src/screens/DashboardScreen';
 import OnboardingScreen from './src/screens/OnboardingScreen';
 import TopicDetailScreen from './src/screens/TopicDetailScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
+
+const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY || '';
 
 const Stack = createNativeStackNavigator();
 
@@ -62,11 +65,17 @@ function AppNavigator() {
 }
 
 export default function App() {
+  if (!publishableKey) {
+    console.error('EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY is not set. Please add it to your .env file.');
+  }
+
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <AppNavigator />
-      </AuthProvider>
-    </ThemeProvider>
+    <ClerkProvider publishableKey={publishableKey}>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppNavigator />
+        </AuthProvider>
+      </ThemeProvider>
+    </ClerkProvider>
   );
 }

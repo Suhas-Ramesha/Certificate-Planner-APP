@@ -1,14 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { 
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  updateProfile,
-  User as FirebaseUser
-} from 'firebase/auth';
-import { auth } from '../config/firebase';
+import { useAuth as useClerkAuth, useUser } from '@clerk/clerk-expo';
 import api from '../config/api';
 
 interface User {
@@ -19,84 +11,74 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  firebaseUser: FirebaseUser | null;
+  clerkUser: ReturnType<typeof useUser>['user'] | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name?: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const { user: clerkUser, isLoaded: clerkLoaded } = useUser();
+  const { signOut } = useClerkAuth();
   const [user, setUser] = useState<User | null>(null);
-  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        setFirebaseUser(firebaseUser);
-        
-        // Get Firebase ID token
-        const token = await firebaseUser.getIdToken();
-        
-        // Store token for backend API calls
-        await AsyncStorage.setItem('firebase_token', token);
-        
-        // Sync user with your backend (create user if doesn't exist)
+    if (!clerkLoaded) {
+      return;
+    }
+
+    const syncUser = async () => {
+      if (clerkUser) {
         try {
-          const response = await api.post('/auth/firebase', {
-            uid: firebaseUser.uid,
-            email: firebaseUser.email,
-            name: firebaseUser.displayName || undefined
-          });
+          // Get Clerk session token for backend
+          const token = await clerkUser.getToken();
           
-          // Set user from backend response
-          setUser(response.data.user);
-        } catch (error: any) {
-          console.error('Backend sync error:', error);
-          // If backend sync fails, use Firebase user data
-          setUser({
-            id: 0, // Will be set by backend
-            email: firebaseUser.email || '',
-            name: firebaseUser.displayName || undefined
-          });
+          // Store token for backend API calls
+          if (token) {
+            await AsyncStorage.setItem('clerk_token', token);
+          }
+          
+          // Sync user with backend
+          try {
+            const response = await api.post('/auth/clerk', {
+              clerkId: clerkUser.id,
+              email: clerkUser.primaryEmailAddress?.emailAddress,
+              name: clerkUser.fullName || clerkUser.firstName || undefined
+            });
+            
+            setUser(response.data.user);
+          } catch (error: any) {
+            console.error('Backend sync error:', error);
+            // If backend sync fails, use Clerk user data
+            setUser({
+              id: 0,
+              email: clerkUser.primaryEmailAddress?.emailAddress || '',
+              name: clerkUser.fullName || undefined
+            });
+          }
+        } catch (error) {
+          console.error('Error getting Clerk token:', error);
         }
       } else {
-        await AsyncStorage.removeItem('firebase_token');
+        await AsyncStorage.removeItem('clerk_token');
         setUser(null);
-        setFirebaseUser(null);
       }
       setLoading(false);
-    });
+    };
 
-    return unsubscribe;
-  }, []);
-
-  const login = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
-    // onAuthStateChanged will handle the rest
-  };
-
-  const register = async (email: string, password: string, name?: string) => {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    
-    // Update display name if provided
-    if (name && userCredential.user) {
-      await updateProfile(userCredential.user, { displayName: name });
-    }
-    
-    // onAuthStateChanged will handle the rest
-  };
+    syncUser();
+  }, [clerkUser, clerkLoaded]);
 
   const logout = async () => {
-    await signOut(auth);
-    // onAuthStateChanged will handle the rest
+    await signOut();
+    await AsyncStorage.removeItem('clerk_token');
+    setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, firebaseUser, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, clerkUser, loading, logout }}>
       {children}
     </AuthContext.Provider>
   );

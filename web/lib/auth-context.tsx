@@ -1,15 +1,7 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect } from 'react'
-import { 
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  updateProfile,
-  User as FirebaseUser
-} from 'firebase/auth'
-import { auth } from './firebase'
+import React, { createContext, useContext, useEffect, useState } from 'react'
+import { useUser, useAuth as useClerkAuth } from '@clerk/nextjs'
 import api from './api'
 
 interface User {
@@ -20,80 +12,78 @@ interface User {
 
 interface AuthContextType {
   user: User | null
-  firebaseUser: FirebaseUser | null
+  clerkUser: ReturnType<typeof useUser>['user'] | null
   loading: boolean
-  login: (email: string, password: string) => Promise<void>
-  register: (email: string, password: string, name?: string) => Promise<void>
   logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const { user: clerkUser, isLoaded: clerkLoaded } = useUser()
+  const { signOut } = useClerkAuth()
   const [user, setUser] = useState<User | null>(null)
-  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        setFirebaseUser(firebaseUser)
-        
-        // Get Firebase ID token
-        const token = await firebaseUser.getIdToken()
-        
-        // Store token for backend API calls
-        localStorage.setItem('firebase_token', token)
-        
-        // Sync user with your backend
+    if (!clerkLoaded) {
+      return
+    }
+
+    const syncUser = async () => {
+      if (clerkUser) {
         try {
-          const response = await api.post('/auth/firebase', {
-            uid: firebaseUser.uid,
-            email: firebaseUser.email,
-            name: firebaseUser.displayName || undefined
-          })
+          // Get Clerk session token for backend
+          const token = await clerkUser.getToken()
           
-          setUser(response.data.user)
-        } catch (error: any) {
-          console.error('Backend sync error:', error)
-          // If backend sync fails, use Firebase user data
-          setUser({
-            id: 0,
-            email: firebaseUser.email || '',
-            name: firebaseUser.displayName || undefined
-          })
+          // Store token for backend API calls
+          if (typeof window !== 'undefined' && token) {
+            localStorage.setItem('clerk_token', token)
+          }
+          
+          // Sync user with backend
+          try {
+            const response = await api.post('/auth/clerk', {
+              clerkId: clerkUser.id,
+              email: clerkUser.primaryEmailAddress?.emailAddress,
+              name: clerkUser.fullName || clerkUser.firstName || undefined
+            })
+            
+            setUser(response.data.user)
+          } catch (error: any) {
+            console.error('Backend sync error:', error)
+            // If backend sync fails, use Clerk user data
+            setUser({
+              id: 0,
+              email: clerkUser.primaryEmailAddress?.emailAddress || '',
+              name: clerkUser.fullName || undefined
+            })
+          }
+        } catch (error) {
+          console.error('Error getting Clerk token:', error)
         }
       } else {
-        localStorage.removeItem('firebase_token')
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('clerk_token')
+        }
         setUser(null)
-        setFirebaseUser(null)
       }
       setLoading(false)
-    })
-
-    return unsubscribe
-  }, [])
-
-  const login = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password)
-    // onAuthStateChanged will handle the rest
-  }
-
-  const register = async (email: string, password: string, name?: string) => {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password)
-    if (name && userCredential.user) {
-      await updateProfile(userCredential.user, { displayName: name })
     }
-    // onAuthStateChanged will handle the rest
-  }
+
+    syncUser()
+  }, [clerkUser, clerkLoaded])
 
   const logout = async () => {
-    await signOut(auth)
-    // onAuthStateChanged will handle the rest
+    await signOut()
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('clerk_token')
+    }
+    setUser(null)
   }
 
   return (
-    <AuthContext.Provider value={{ user, firebaseUser, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, clerkUser, loading, logout }}>
       {children}
     </AuthContext.Provider>
   )

@@ -11,9 +11,9 @@ const api = axios.create({
   },
 });
 
-// Add Firebase token to requests
+// Add Clerk token to requests
 api.interceptors.request.use(async (config) => {
-  const token = await AsyncStorage.getItem('firebase_token');
+  const token = await AsyncStorage.getItem('clerk_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -25,7 +25,7 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
-      await AsyncStorage.removeItem('firebase_token');
+      await AsyncStorage.removeItem('clerk_token');
     }
     return Promise.reject(error);
   }

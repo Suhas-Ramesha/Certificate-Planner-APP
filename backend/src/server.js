@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import { pool } from './database/connection.js';
 import authRoutes from './routes/auth.js';
 import firebaseAuthRoutes from './routes/firebase-auth.js';
+import clerkAuthRoutes from './routes/clerk-auth.js';
 import userRoutes from './routes/users.js';
 import roadmapRoutes from './routes/roadmaps.js';
 import certificationRoutes from './routes/certifications.js';
@@ -47,7 +48,8 @@ app.get('/health', async (req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes); // Keep old JWT routes for backward compatibility
-app.use('/api/auth', firebaseAuthRoutes); // Firebase auth routes
+app.use('/api/auth', firebaseAuthRoutes); // Firebase auth routes (deprecated)
+app.use('/api/auth', clerkAuthRoutes); // Clerk auth routes
 app.use('/api/users', userRoutes);
 app.use('/api/roadmaps', roadmapRoutes);
 app.use('/api/certifications', certificationRoutes);

@@ -1,21 +1,21 @@
 'use client'
 
-import { useAuth } from '@/lib/auth-context'
+import { SignedIn, SignedOut, useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import LoginForm from '@/components/LoginForm'
 
 export default function Home() {
-  const { user, loading } = useAuth()
+  const { isLoaded, user } = useUser()
   const router = useRouter()
 
   useEffect(() => {
-    if (!loading && user) {
+    if (isLoaded && user) {
       router.push('/dashboard')
     }
-  }, [user, loading, router])
+  }, [isLoaded, user, router])
 
-  if (loading) {
+  if (!isLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100">
         <div className="text-center">
@@ -26,9 +26,19 @@ export default function Home() {
     )
   }
 
-  if (!user) {
-    return <LoginForm />
-  }
-
-  return null
+  return (
+    <>
+      <SignedOut>
+        <LoginForm />
+      </SignedOut>
+      <SignedIn>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Redirecting to dashboard...</p>
+          </div>
+        </div>
+      </SignedIn>
+    </>
+  )
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
+import { SignedIn, SignedOut, useUser } from '@clerk/nextjs'
 import { useRouter, useSearchParams } from 'next/navigation'
 import api from '@/lib/api'
 import Navbar from '@/components/Navbar'

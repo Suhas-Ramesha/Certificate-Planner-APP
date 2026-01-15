@@ -10,9 +10,8 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { useAuth } from '../context/AuthContext';
+import { useSignIn, useSignUp } from '@clerk/clerk-expo';
 import { useTheme } from '../context/ThemeContext';
-import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function LoginScreen() {
@@ -23,9 +22,9 @@ export default function LoginScreen() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const { login, register } = useAuth();
+  const { signIn, setActive, isLoaded: signInLoaded } = useSignIn();
+  const { signUp, setActive: setActiveSignUp, isLoaded: signUpLoaded } = useSignUp();
   const { colors } = useTheme();
-  const navigation = useNavigation();
   
   const styles = createStyles(colors);
 
@@ -35,13 +34,50 @@ export default function LoginScreen() {
 
     try {
       if (isLogin) {
-        await login(email, password);
+        if (!signInLoaded) {
+          setError('Sign in not ready. Please wait...');
+          return;
+        }
+
+        const result = await signIn.create({
+          identifier: email,
+          password: password,
+        });
+
+        if (result.status === 'complete') {
+          await setActive({ session: result.createdSessionId });
+          // AuthContext will handle the rest
+        } else {
+          setError('Sign in incomplete. Please try again.');
+        }
       } else {
-        await register(email, password, name);
+        if (!signUpLoaded) {
+          setError('Sign up not ready. Please wait...');
+          return;
+        }
+
+        const result = await signUp.create({
+          emailAddress: email,
+          password: password,
+          firstName: name || undefined,
+        });
+
+        // Send email verification if needed
+        if (result.status === 'missing_requirements') {
+          await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+          setError('Please check your email for verification code.');
+          return;
+        }
+
+        if (result.status === 'complete') {
+          await setActiveSignUp({ session: result.createdSessionId });
+          // AuthContext will handle the rest
+        } else {
+          setError('Sign up incomplete. Please try again.');
+        }
       }
-      // Navigation will be handled by AuthContext
     } catch (err: any) {
-      setError(err.response?.data?.error || 'An error occurred');
+      setError(err.errors?.[0]?.message || 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -123,7 +159,7 @@ export default function LoginScreen() {
           <TouchableOpacity
             style={[styles.button, loading && styles.buttonDisabled]}
             onPress={handleSubmit}
-            disabled={loading}
+            disabled={loading || (isLogin ? !signInLoaded : !signUpLoaded)}
           >
             {loading ? (
               <ActivityIndicator color="#fff" />

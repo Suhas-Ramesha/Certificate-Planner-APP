@@ -1,19 +1,16 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
-import { useAuth } from '@/lib/auth-context'
-import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { UserButton, SignedIn, SignedOut, SignInButton } from '@clerk/nextjs'
 import { 
   BookOpen, 
   Award, 
   TrendingUp, 
   User, 
   Settings, 
-  LogOut, 
   Menu,
   X,
-  Bell,
-  ChevronDown
+  Bell
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -23,26 +20,7 @@ interface NavbarProps {
 }
 
 export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
-  const { user, logout } = useAuth()
-  const router = useRouter()
-  const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const menuRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setUserMenuOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
-
-  const handleLogout = () => {
-    logout()
-    router.push('/')
-  }
 
   const tabs = [
     { id: 'roadmap', label: 'Roadmap', icon: BookOpen, href: '/dashboard' },
@@ -94,56 +72,24 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
           {/* Right Side - User Menu */}
           <div className="flex items-center gap-4">
             {/* Notifications */}
-            <button className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
-
-            {/* User Menu */}
-            <div className="relative" ref={menuRef}>
-              <button
-                onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <div className="w-8 h-8 bg-gradient-to-r from-primary-500 to-primary-600 rounded-full flex items-center justify-center text-white font-semibold">
-                  {user?.name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'U'}
-                </div>
-                <span className="hidden sm:block text-sm font-medium text-gray-700">
-                  {user?.name || user?.email?.split('@')[0]}
-                </span>
-                <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
+            <SignedIn>
+              <button className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+                <Bell className="w-5 h-5" />
+                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
               </button>
+            </SignedIn>
 
-              {/* Dropdown Menu */}
-              {userMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-50">
-                  <Link
-                    href="/profile"
-                    onClick={() => setUserMenuOpen(false)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                  >
-                    <User className="w-4 h-4" />
-                    Profile
-                  </Link>
-                  <Link
-                    href="/settings"
-                    onClick={() => setUserMenuOpen(false)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                  >
-                    <Settings className="w-4 h-4" />
-                    Settings
-                  </Link>
-                  <div className="border-t border-gray-200 my-1"></div>
-                  <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    Logout
-                  </button>
-                </div>
-              )}
-            </div>
+            {/* Clerk User Button */}
+            <SignedIn>
+              <UserButton afterSignOutUrl="/" />
+            </SignedIn>
+            <SignedOut>
+              <SignInButton mode="modal">
+                <button className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
+                  Sign In
+                </button>
+              </SignInButton>
+            </SignedOut>
 
             {/* Mobile Menu Button */}
             <button

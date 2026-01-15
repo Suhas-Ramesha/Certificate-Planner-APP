@@ -8,6 +8,8 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "migrate": "node src/database/migrate.js",
+    "migrate:firebase": "node src/database/firebase-migration.js",
+    "migrate:clerk": "node src/database/clerk-migration.js",
     "seed": "node src/database/seed.js"
   },
   "keywords": ["learning", "certification", "planner"],
@@ -25,7 +27,7 @@
     "express-validator": "^7.0.1",
     "helmet": "^7.1.0",
     "express-rate-limit": "^7.1.5",
-    "firebase-admin": "^12.0.0"
+    "@clerk/clerk-sdk-node": "^1.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"
