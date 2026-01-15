@@ -1,0 +1,18 @@
+# Render Blueprint Configuration
+# This file helps Render automatically configure your service
+
+services:
+  - type: web
+    name: learning-planner-backend
+    env: node
+    region: oregon  # Change to your preferred region
+    plan: free
+    buildCommand: npm install
+    startCommand: npm run migrate && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      # Add your other environment variables in Render dashboard
+      # Don't put secrets in this file!
