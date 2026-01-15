@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import { pool } from './database/connection.js';
+import { ensureClerkSchema } from './database/ensure-clerk-schema.js';
 import authRoutes from './routes/auth.js';
 // import firebaseAuthRoutes from './routes/firebase-auth.js'; // Removed - using Clerk now
 import clerkAuthRoutes from './routes/clerk-auth.js';
@@ -73,10 +74,19 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+async function startServer() {
+  try {
+    await ensureClerkSchema();
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('Failed to ensure Clerk schema:', error);
+    process.exit(1);
+  }
+}
+
+startServer();
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {
