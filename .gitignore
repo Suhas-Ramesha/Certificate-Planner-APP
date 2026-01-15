@@ -57,3 +57,7 @@ docker-compose.override.yml
 *-firebase-adminsdk-*.json
 firebase-adminsdk-*.json
 *firebase-adminsdk*.json
+
+# .md files
+setup_guide.md
+start_guide.md
