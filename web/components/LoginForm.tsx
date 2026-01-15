@@ -51,8 +51,8 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-600 via-primary-500 to-primary-700 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md transform transition-all">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-600 via-primary-500 to-primary-700 p-4 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
+      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md transform transition-all dark:bg-slate-900 dark:border dark:border-slate-800">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-primary-600 to-primary-400 rounded-2xl mb-4 shadow-lg">
             <LogIn className="w-8 h-8 text-white" />
@@ -60,7 +60,7 @@ export default function LoginForm() {
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent mb-2">
             Learning Planner
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-300">
             {isLogin ? 'Sign in to continue your learning journey' : 'Create your account to get started'}
           </p>
         </div>
@@ -68,42 +68,42 @@ export default function LoginForm() {
         <form className="space-y-4" onSubmit={handleSubmit}>
           {!isLogin && (
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Name</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2 dark:text-gray-200">Name</label>
               <input
                 type="text"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
                 placeholder="Your name"
-                className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:border-primary-500 focus:outline-none text-gray-900 placeholder:text-gray-400"
+                className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:border-primary-500 focus:outline-none text-gray-900 placeholder:text-gray-400 dark:bg-slate-800 dark:border-slate-700 dark:text-gray-100 dark:placeholder:text-gray-400"
               />
             </div>
           )}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2 dark:text-gray-200">Email</label>
             <input
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               placeholder="you@example.com"
-              className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:border-primary-500 focus:outline-none text-gray-900 placeholder:text-gray-400"
+              className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:border-primary-500 focus:outline-none text-gray-900 placeholder:text-gray-400 dark:bg-slate-800 dark:border-slate-700 dark:text-gray-100 dark:placeholder:text-gray-400"
               autoComplete="email"
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2 dark:text-gray-200">Password</label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 placeholder="********"
-                className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 pr-12 focus:border-primary-500 focus:outline-none text-gray-900 placeholder:text-gray-400"
+                className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 pr-12 focus:border-primary-500 focus:outline-none text-gray-900 placeholder:text-gray-400 dark:bg-slate-800 dark:border-slate-700 dark:text-gray-100 dark:placeholder:text-gray-400"
                 autoComplete={isLogin ? 'current-password' : 'new-password'}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>

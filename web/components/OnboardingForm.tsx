@@ -94,7 +94,7 @@ export default function OnboardingForm({ onComplete }: OnboardingFormProps) {
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
-      <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-2xl overflow-hidden dark:bg-slate-900 dark:border dark:border-slate-800">
         <div className="bg-gradient-to-r from-primary-600 to-primary-500 px-8 py-6">
           <h2 className="text-3xl font-bold text-white mb-2">
             Complete Your Profile
@@ -107,7 +107,7 @@ export default function OnboardingForm({ onComplete }: OnboardingFormProps) {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2 dark:text-gray-200">
               Background
             </label>
             <AutocompleteInput
@@ -135,7 +135,7 @@ export default function OnboardingForm({ onComplete }: OnboardingFormProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2 dark:text-gray-200">
               Current Skills
             </label>
             <div className="flex gap-2 mb-2">
@@ -145,7 +145,7 @@ export default function OnboardingForm({ onComplete }: OnboardingFormProps) {
                   value={skillInput}
                   onChange={(e) => setSkillInput(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors text-gray-900 placeholder:text-gray-400"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors text-gray-900 placeholder:text-gray-400 dark:bg-slate-800 dark:border-slate-700 dark:text-gray-100 dark:placeholder:text-gray-400"
                   placeholder="Add a skill and press Enter"
                 />
                 {skillInput && (
@@ -183,7 +183,7 @@ export default function OnboardingForm({ onComplete }: OnboardingFormProps) {
               {formData.current_skills.map((skill) => (
                 <span
                   key={skill}
-                  className="inline-flex items-center gap-2 px-3 py-1 bg-primary-100 text-primary-800 rounded-full text-sm"
+                  className="inline-flex items-center gap-2 px-3 py-1 bg-primary-100 text-primary-800 rounded-full text-sm dark:bg-primary-900/40 dark:text-primary-200"
                 >
                   {skill}
                   <button
@@ -226,7 +226,7 @@ export default function OnboardingForm({ onComplete }: OnboardingFormProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2 dark:text-gray-200">
               Learning Goals
             </label>
             <AutocompleteInput
@@ -255,10 +255,10 @@ export default function OnboardingForm({ onComplete }: OnboardingFormProps) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Time Available (hours per week)
-              </label>
-              <input
+            <label className="block text-sm font-medium text-gray-700 mb-2 dark:text-gray-200">
+              Time Available (hours per week)
+            </label>
+            <input
                 type="number"
                 min="1"
                 max="168"
@@ -269,21 +269,21 @@ export default function OnboardingForm({ onComplete }: OnboardingFormProps) {
                     time_availability_hours_per_week: parseInt(e.target.value) || 0,
                   })
                 }
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors text-gray-900 placeholder:text-gray-400"
-              />
-            </div>
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors text-gray-900 placeholder:text-gray-400 dark:bg-slate-800 dark:border-slate-700 dark:text-gray-100 dark:placeholder:text-gray-400"
+            />
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Preferred Learning Style
-              </label>
-              <select
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2 dark:text-gray-200">
+              Preferred Learning Style
+            </label>
+            <select
                 value={formData.preferred_learning_style}
                 onChange={(e) =>
                   setFormData({ ...formData, preferred_learning_style: e.target.value })
                 }
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors text-gray-900 bg-white"
-              >
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors text-gray-900 bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-gray-100"
+            >
                 <option value="">Select...</option>
                 <option value="visual">Visual</option>
                 <option value="auditory">Auditory</option>
@@ -295,7 +295,7 @@ export default function OnboardingForm({ onComplete }: OnboardingFormProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2 dark:text-gray-200">
               Target Industry
             </label>
             <AutocompleteInput

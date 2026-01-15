@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
+import ThemeToggle from '@/components/ThemeToggle'
 
 interface NavbarProps {
   activeTab?: string
@@ -32,7 +33,7 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
   ]
 
   return (
-    <nav className="bg-white shadow-lg border-b border-gray-200 sticky top-0 z-50">
+    <nav className="bg-white shadow-lg border-b border-gray-200 sticky top-0 z-50 dark:bg-slate-900 dark:border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -60,7 +61,7 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all ${
                     isActive
                       ? 'bg-primary-50 text-primary-600 border border-primary-200'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-slate-800'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -72,9 +73,10 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
 
           {/* Right Side - User Menu */}
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             {/* Notifications */}
             {user && (
-              <button className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+              <button className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors dark:text-gray-300 dark:hover:text-white dark:hover:bg-slate-800">
                 <Bell className="w-5 h-5" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
               </button>
@@ -83,14 +85,14 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
             {!loading && user ? (
               <div className="flex items-center gap-3">
                 <div className="hidden sm:flex flex-col text-right">
-                  <span className="text-sm font-semibold text-gray-800">
+                  <span className="text-sm font-semibold text-gray-800 dark:text-gray-100">
                     {user.name || user.email}
                   </span>
-                  <span className="text-xs text-gray-500">{user.email}</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">{user.email}</span>
                 </div>
                 <button
                   onClick={logout}
-                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors dark:bg-slate-800 dark:text-gray-200 dark:hover:bg-slate-700"
                 >
                   Sign Out
                 </button>
@@ -107,7 +109,7 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+              className="md:hidden p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg dark:text-gray-300 dark:hover:text-white dark:hover:bg-slate-800"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -116,7 +118,7 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 py-4">
+          <div className="md:hidden border-t border-gray-200 py-4 dark:border-slate-800">
             <div className="flex flex-col space-y-1">
               {tabs.map((tab) => {
                 const Icon = tab.icon
@@ -132,7 +134,7 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
                     className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium ${
                       isActive
                         ? 'bg-primary-50 text-primary-600 border border-primary-200'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-slate-800'
                     }`}
                   >
                     <Icon className="w-5 h-5" />

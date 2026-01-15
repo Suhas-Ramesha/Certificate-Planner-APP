@@ -80,10 +80,10 @@ export default function RoadmapView() {
         <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-r from-primary-100 to-primary-200 rounded-full mb-6">
           <Sparkles className="w-12 h-12 text-primary-600" />
         </div>
-        <h3 className="text-2xl font-bold text-gray-900 mb-3">
+        <h3 className="text-2xl font-bold text-gray-900 mb-3 dark:text-gray-100">
           Sign in to see your roadmaps
         </h3>
-        <p className="text-gray-600 max-w-md mx-auto">
+        <p className="text-gray-600 max-w-md mx-auto dark:text-gray-300">
           Create an account or sign in to generate personalized learning roadmaps.
         </p>
       </div>
@@ -113,7 +113,7 @@ export default function RoadmapView() {
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin text-primary-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading your roadmaps...</p>
+          <p className="text-gray-600 dark:text-gray-300">Loading your roadmaps...</p>
         </div>
       </div>
     )
@@ -125,10 +125,10 @@ export default function RoadmapView() {
         <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-r from-primary-100 to-primary-200 rounded-full mb-6">
           <Sparkles className="w-12 h-12 text-primary-600" />
         </div>
-        <h3 className="text-2xl font-bold text-gray-900 mb-3">
+        <h3 className="text-2xl font-bold text-gray-900 mb-3 dark:text-gray-100">
           No Roadmap Yet
         </h3>
-        <p className="text-gray-600 mb-8 max-w-md mx-auto">
+        <p className="text-gray-600 mb-8 max-w-md mx-auto dark:text-gray-300">
           Generate your personalized learning roadmap powered by AI to get started on your learning journey.
         </p>
         <button
@@ -184,7 +184,7 @@ export default function RoadmapView() {
             {selectedRoadmap.topics?.map((topic, index) => (
               <div
                 key={topic.id}
-                className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all border border-gray-100 p-6"
+                className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all border border-gray-100 p-6 dark:bg-slate-900 dark:border-slate-800"
                 onMouseEnter={() => fetchYoutubeResources(topic.id)}
               >
                 <div className="flex items-start gap-4">
@@ -194,17 +194,17 @@ export default function RoadmapView() {
                     </div>
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    <h3 className="text-xl font-bold text-gray-900 mb-2 dark:text-gray-100">
                       {topic.topic_name}
                     </h3>
-                    <p className="text-gray-600 mb-4 leading-relaxed">{topic.description}</p>
+                    <p className="text-gray-600 mb-4 leading-relaxed dark:text-gray-300">{topic.description}</p>
                     <div className="flex flex-wrap items-center gap-4 text-sm">
                       <span className="flex items-center gap-2 px-3 py-1 bg-primary-50 text-primary-700 rounded-full font-medium">
                         <Clock className="w-4 h-4" />
                         {topic.estimated_hours} hours
                       </span>
                       {topic.prerequisites && topic.prerequisites.length > 0 && (
-                        <span className="flex items-center gap-2 px-3 py-1 bg-gray-100 text-gray-700 rounded-full">
+                        <span className="flex items-center gap-2 px-3 py-1 bg-gray-100 text-gray-700 rounded-full dark:bg-slate-800 dark:text-gray-200">
                           <List className="w-4 h-4" />
                           {topic.prerequisites.join(', ')}
                         </span>
@@ -214,8 +214,8 @@ export default function RoadmapView() {
                 </div>
 
                 {youtubeResources[topic.id] && youtubeResources[topic.id].length > 0 && (
-                  <div className="mt-6 pt-6 border-t border-gray-200">
-                    <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <div className="mt-6 pt-6 border-t border-gray-200 dark:border-slate-800">
+                    <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2 dark:text-gray-100">
                       <Play className="w-5 h-5 text-primary-600" />
                       Learning Resources
                     </h4>
@@ -226,7 +226,7 @@ export default function RoadmapView() {
                           href={`https://www.youtube.com/${resource.resource_type === 'playlist' ? 'playlist?list=' : 'watch?v='}${resource.video_id || resource.playlist_id}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-start gap-3 p-4 border-2 border-gray-200 rounded-xl hover:border-primary-300 hover:bg-gradient-to-r hover:from-primary-50 hover:to-white transition-all group"
+                          className="flex items-start gap-3 p-4 border-2 border-gray-200 rounded-xl hover:border-primary-300 hover:bg-gradient-to-r hover:from-primary-50 hover:to-white transition-all group dark:border-slate-800 dark:hover:from-slate-800 dark:hover:to-slate-900"
                         >
                           <div className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${
                             resource.resource_type === 'playlist' 
@@ -240,10 +240,10 @@ export default function RoadmapView() {
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-gray-900 text-sm line-clamp-2 group-hover:text-primary-600 transition-colors">
+                            <p className="font-semibold text-gray-900 text-sm line-clamp-2 group-hover:text-primary-600 transition-colors dark:text-gray-100">
                               {resource.title}
                             </p>
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="text-xs text-gray-500 mt-1 dark:text-gray-400">
                               {resource.channel_name}
                             </p>
                           </div>
