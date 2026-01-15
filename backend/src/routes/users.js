@@ -1,12 +1,12 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
 import { pool } from '../database/connection.js';
-import { authenticateToken } from '../middleware/auth.js';
+import { authenticateClerkToken } from '../middleware/clerk-auth.js';
 
 const router = express.Router();
 
-// All routes require authentication
-router.use(authenticateToken);
+// All routes require Clerk authentication
+router.use(authenticateClerkToken);
 
 // Get user profile
 router.get('/profile', async (req, res) => {

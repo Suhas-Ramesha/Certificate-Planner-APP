@@ -1,9 +1,9 @@
-import { clerkClient } from '@clerk/clerk-sdk-node';
+import { clerkClient, verifyToken } from '@clerk/express';
 import { pool } from '../database/connection.js';
-import jwt from 'jsonwebtoken';
 
 /**
  * Middleware to authenticate Clerk tokens
+ * This middleware verifies the Clerk session token and attaches user info to req.user
  */
 export const authenticateClerkToken = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -14,24 +14,23 @@ export const authenticateClerkToken = async (req, res, next) => {
   }
 
   try {
-    // Initialize Clerk client
-    const clerk = clerkClient();
+    // Verify the token with Clerk
+    // verifyToken returns the decoded JWT payload
+    const payload = await verifyToken(token);
     
-    // Decode the JWT token to get the user ID (sub claim)
-    // Note: We're not verifying the signature here as Clerk handles that
-    // In production, you should verify the token signature using Clerk's public key
-    const decoded = jwt.decode(token, { complete: true });
-    
-    if (!decoded || !decoded.payload || !decoded.payload.sub) {
+    if (!payload || !payload.sub) {
       return res.status(403).json({ error: 'Invalid token format' });
     }
 
-    const clerkId = decoded.payload.sub;
+    const clerkId = payload.sub;
+
+    // Initialize Clerk client (uses CLERK_SECRET_KEY from env automatically)
+    const clerk = clerkClient();
     
     // Get user details from Clerk
     const clerkUser = await clerk.users.getUser(clerkId);
     
-    // Get user ID from database
+    // Get user ID from database (user may not exist yet, which is OK)
     const userResult = await pool.query(
       'SELECT id FROM users WHERE clerk_id = $1',
       [clerkId]
@@ -49,6 +48,10 @@ export const authenticateClerkToken = async (req, res, next) => {
     next();
   } catch (error) {
     console.error('Clerk token verification error:', error);
-    return res.status(403).json({ error: 'Invalid or expired token' });
+    console.error('Error details:', error.message);
+    return res.status(403).json({ 
+      error: 'Invalid or expired token',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };

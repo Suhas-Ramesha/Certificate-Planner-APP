@@ -12,7 +12,7 @@ const api = axios.create({
 // Add Clerk token to requests
 api.interceptors.request.use(async (config) => {
   if (typeof window !== 'undefined') {
-    // Try to get token from localStorage (set by auth-context)
+    // Get token from localStorage (set by auth-context)
     const token = localStorage.getItem('clerk_token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
