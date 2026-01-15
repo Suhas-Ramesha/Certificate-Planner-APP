@@ -5,7 +5,7 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import { pool } from './database/connection.js';
 import authRoutes from './routes/auth.js';
-import firebaseAuthRoutes from './routes/firebase-auth.js';
+// import firebaseAuthRoutes from './routes/firebase-auth.js'; // Removed - using Clerk now
 import clerkAuthRoutes from './routes/clerk-auth.js';
 import userRoutes from './routes/users.js';
 import roadmapRoutes from './routes/roadmaps.js';
@@ -48,7 +48,7 @@ app.get('/health', async (req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes); // Keep old JWT routes for backward compatibility
-app.use('/api/auth', firebaseAuthRoutes); // Firebase auth routes (deprecated)
+// app.use('/api/auth', firebaseAuthRoutes); // Firebase auth routes (deprecated - removed)
 app.use('/api/auth', clerkAuthRoutes); // Clerk auth routes
 app.use('/api/users', userRoutes);
 app.use('/api/roadmaps', roadmapRoutes);

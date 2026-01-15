@@ -1,33 +1,12 @@
-import admin from 'firebase-admin';
-import dotenv from 'dotenv';
+// Firebase Admin is no longer used - migrated to Clerk
+// This file is kept for backward compatibility but exports a no-op object
+// If you need Firebase Admin, install firebase-admin package
 
-dotenv.config();
-
-// Initialize Firebase Admin
-// Option 1: Using service account JSON (recommended for production)
-if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-  try {
-    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount)
-    });
-    console.log('✓ Firebase Admin initialized with service account');
-  } catch (error) {
-    console.error('Error parsing FIREBASE_SERVICE_ACCOUNT:', error);
-    throw error;
-  }
-} else if (process.env.FIREBASE_PROJECT_ID) {
-  // Option 2: Using environment variables
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n')
-    })
-  });
-  console.log('✓ Firebase Admin initialized with env variables');
-} else {
-  console.warn('⚠️ Firebase Admin not initialized - no credentials provided');
-}
+// Export a no-op admin object since firebase-admin is not installed
+const admin = {
+  auth: () => ({
+    verifyIdToken: () => Promise.reject(new Error('Firebase Admin not available - using Clerk authentication'))
+  })
+};
 
 export default admin;
