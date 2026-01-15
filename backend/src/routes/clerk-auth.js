@@ -23,9 +23,11 @@ router.post('/clerk', verifyClerkTokenOnly, async (req, res) => {
     }
 
     // Create new user
+    // Note: password_hash is nullable (made nullable by Firebase migration)
+    // If password_hash is still required, we'll need to run the migration
     const result = await pool.query(
-      'INSERT INTO users (clerk_id, email, name) VALUES ($1, $2, $3) RETURNING id, email, name',
-      [clerkId, email, name || null]
+      'INSERT INTO users (clerk_id, email, name, password_hash) VALUES ($1, $2, $3, $4) RETURNING id, email, name',
+      [clerkId, email, name || null, null] // password_hash is null for Clerk users
     );
 
     // Add userId to req.user for compatibility
@@ -34,7 +36,16 @@ router.post('/clerk', verifyClerkTokenOnly, async (req, res) => {
     res.status(201).json({ user: result.rows[0] });
   } catch (error) {
     console.error('Clerk auth sync error:', error);
-    res.status(500).json({ error: 'Failed to sync user' });
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      constraint: error.constraint,
+      detail: error.detail
+    });
+    res.status(500).json({ 
+      error: 'Failed to sync user',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 

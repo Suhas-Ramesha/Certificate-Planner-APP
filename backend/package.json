@@ -8,6 +8,7 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "migrate": "node src/database/migrate.js",
+    "migrate:all": "node src/database/migrate-all.js",
     "migrate:firebase": "node src/database/firebase-migration.js",
     "migrate:clerk": "node src/database/clerk-migration.js",
     "seed": "node src/database/seed.js"
