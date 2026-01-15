@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef, Suspense } from 'react'
 import dynamic from 'next/dynamic'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -29,6 +29,21 @@ interface UserProfile {
 }
 
 export default function DashboardPage() {
+  return (
+    <Suspense
+      fallback={
+        <LoadingScreen
+          message="Loading Your Dashboard"
+          subMessage="Preparing your personalized learning experience..."
+        />
+      }
+    >
+      <DashboardContent />
+    </Suspense>
+  )
+}
+
+function DashboardContent() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
