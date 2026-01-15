@@ -1,15 +1,8 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// For local development, use your computer's IP address for mobile device testing
-// For production, use your Render backend URL: 'https://your-backend.onrender.com'
-// 
-// TO USE ONLINE BACKEND: Replace both URLs below with your Render backend URL
-// Example: 'https://learning-planner-backend.onrender.com'
-//
-const API_URL = __DEV__ 
-  ? 'https://your-backend.onrender.com'  // ⚠️ UPDATE THIS: Replace with your Render backend URL
-  : 'https://your-backend.onrender.com'; // ⚠️ UPDATE THIS: Replace with your Render backend URL
+// Render backend URL
+const API_URL = 'https://learning-planner-backend.onrender.com';
 
 const api = axios.create({
   baseURL: `${API_URL}/api`,
