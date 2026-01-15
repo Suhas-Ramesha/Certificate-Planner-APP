@@ -21,6 +21,7 @@ export default function CertificationsView() {
   const [certifications, setCertifications] = useState<Certification[]>([])
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState<number | null>(null)
+  const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
     fetchCertifications()
@@ -30,8 +31,16 @@ export default function CertificationsView() {
     try {
       const response = await api.get('/certifications/recommended')
       setCertifications(response.data.certifications)
+      setErrorMessage('')
     } catch (error: any) {
-      if (error.response?.status !== 400) {
+      const status = error.response?.status
+      const backendMessage = error.response?.data?.error
+      if (status === 400) {
+        setErrorMessage(backendMessage || 'Generate a roadmap first to get recommendations.')
+      } else if (status === 503) {
+        setErrorMessage(backendMessage || 'Recommendations are temporarily unavailable. Please try again later.')
+      } else {
+        setErrorMessage('Unable to load certifications. Please try again.')
         console.error('Failed to fetch certifications:', error)
       }
     } finally {
@@ -97,8 +106,13 @@ export default function CertificationsView() {
           No Certifications Yet
         </h3>
         <p className="text-gray-600 mb-6 max-w-md mx-auto">
-          Generate a roadmap first to get personalized certification recommendations based on your learning goals.
+          {errorMessage || 'Generate a roadmap first to get personalized certification recommendations based on your learning goals.'}
         </p>
+        {errorMessage && (
+          <p className="text-sm text-gray-500">
+            If you already have a roadmap, try generating recommendations again later.
+          </p>
+        )}
       </div>
     )
   }

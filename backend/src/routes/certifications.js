@@ -12,6 +12,21 @@ router.use(authenticateToken);
 // Get recommended certifications for user
 router.get('/recommended', async (req, res) => {
   try {
+    // Return existing recommendations if already generated
+    const existingRecs = await pool.query(
+      `SELECT uc.*, c.name, c.provider, c.description, c.difficulty_level, 
+              c.estimated_study_hours, c.category, c.website_url
+       FROM user_certifications uc
+       JOIN certifications c ON uc.certification_id = c.id
+       WHERE uc.user_id = $1
+       ORDER BY uc.priority DESC, uc.created_at DESC`,
+      [req.user.userId]
+    );
+
+    if (existingRecs.rows.length > 0) {
+      return res.json({ certifications: existingRecs.rows });
+    }
+
     // Get user profile and latest roadmap
     const profileResult = await pool.query(
       'SELECT * FROM user_profiles WHERE user_id = $1',
@@ -41,10 +56,20 @@ router.get('/recommended', async (req, res) => {
     );
 
     // Get recommendations from LLM
-    const recommendations = await recommendCertifications(
-      profileResult.rows[0],
-      topicsResult.rows
-    );
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(503).json({ error: 'Recommendation service unavailable. Please try again later.' });
+    }
+
+    let recommendations;
+    try {
+      recommendations = await recommendCertifications(
+        profileResult.rows[0],
+        topicsResult.rows
+      );
+    } catch (error) {
+      console.error('Recommendation generation error:', error);
+      return res.status(503).json({ error: 'Recommendation service unavailable. Please try again later.' });
+    }
 
     // Ensure recommendations is an array
     const recsArray = Array.isArray(recommendations) ? recommendations : (recommendations.certifications || []);

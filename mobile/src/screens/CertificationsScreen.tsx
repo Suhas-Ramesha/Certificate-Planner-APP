@@ -28,6 +28,7 @@ export default function CertificationsScreen() {
   const [certifications, setCertifications] = useState<Certification[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     fetchCertifications();
@@ -37,8 +38,16 @@ export default function CertificationsScreen() {
     try {
       const response = await api.get('/certifications/recommended');
       setCertifications(response.data.certifications);
+      setErrorMessage('');
     } catch (error: any) {
-      if (error.response?.status !== 400) {
+      const status = error.response?.status;
+      const backendMessage = error.response?.data?.error;
+      if (status === 400) {
+        setErrorMessage(backendMessage || 'Generate a roadmap first to get recommendations.');
+      } else if (status === 503) {
+        setErrorMessage(backendMessage || 'Recommendations are temporarily unavailable. Please try again later.');
+      } else {
+        setErrorMessage('Unable to load certifications. Please try again.');
         console.error('Failed to fetch certifications:', error);
       }
     } finally {
@@ -104,8 +113,13 @@ export default function CertificationsScreen() {
         <Ionicons name="trophy-outline" size={64} color="#64748b" />
         <Text style={styles.emptyTitle}>No Certifications Yet</Text>
         <Text style={styles.emptyText}>
-          Generate a roadmap first to get personalized certification recommendations.
+          {errorMessage || 'Generate a roadmap first to get personalized certification recommendations.'}
         </Text>
+        {errorMessage ? (
+          <Text style={styles.emptyHint}>
+            If you already have a roadmap, try again later.
+          </Text>
+        ) : null}
       </ScrollView>
     );
   }
@@ -221,6 +235,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#64748b',
     textAlign: 'center',
+  },
+  emptyHint: {
+    fontSize: 13,
+    color: '#94a3b8',
+    textAlign: 'center',
+    marginTop: 8,
   },
   content: {
     padding: 16,
