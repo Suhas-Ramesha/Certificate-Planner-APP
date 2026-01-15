@@ -1,6 +1,4 @@
 import admin from '../config/firebase-admin.js';
-
-import admin from '../config/firebase-admin.js';
 import { pool } from '../database/connection.js';
 
 export const authenticateFirebaseToken = async (req, res, next) => {
