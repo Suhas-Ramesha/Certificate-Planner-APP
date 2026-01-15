@@ -9,6 +9,9 @@ const router = express.Router();
 router.post('/clerk', verifyClerkTokenOnly, async (req, res) => {
   try {
     const { clerkId, email, name } = req.user;
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required from Clerk profile' });
+    }
 
     // Check if user exists
     const existingUser = await pool.query(
@@ -20,6 +23,21 @@ router.post('/clerk', verifyClerkTokenOnly, async (req, res) => {
       // User exists, add userId to req.user for compatibility
       req.user.userId = existingUser.rows[0].id;
       return res.json({ user: existingUser.rows[0] });
+    }
+
+    // If an account with the same email exists, link it to this Clerk ID
+    const existingByEmail = await pool.query(
+      'SELECT id, email, name FROM users WHERE email = $1',
+      [email]
+    );
+
+    if (existingByEmail.rows.length > 0) {
+      const updateResult = await pool.query(
+        'UPDATE users SET clerk_id = $1, name = COALESCE(name, $2) WHERE id = $3 RETURNING id, email, name',
+        [clerkId, name || null, existingByEmail.rows[0].id]
+      );
+      req.user.userId = updateResult.rows[0].id;
+      return res.json({ user: updateResult.rows[0] });
     }
 
     // Create new user
