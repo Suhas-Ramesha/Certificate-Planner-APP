@@ -37,7 +37,6 @@ function DashboardTabs() {
             <TouchableOpacity
               onPress={async () => {
                 await logout();
-                navigation.navigate('Login' as never);
               }}
             >
               <Ionicons name="log-out-outline" size={24} color={colors.primary} />
@@ -103,6 +102,7 @@ function DashboardTabs() {
 
 export default function DashboardScreen() {
   const navigation = useNavigation();
+  const { logout } = useAuth();
   const [loading, setLoading] = useState(true);
 
   useFocusEffect(
@@ -120,6 +120,10 @@ export default function DashboardScreen() {
       }
     } catch (error) {
       console.error('Profile check error:', error);
+      const status = (error as any)?.response?.status;
+      if (status === 401 || status === 403) {
+        await logout();
+      }
     } finally {
       setLoading(false);
     }

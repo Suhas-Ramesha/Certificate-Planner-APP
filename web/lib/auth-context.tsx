@@ -1,7 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react'
-import { useUser, useAuth as useClerkAuth } from '@clerk/nextjs'
+import React, { createContext, useContext, useEffect, useState } from 'react'
 import api from './api'
 
 interface User {
@@ -12,118 +11,72 @@ interface User {
 
 interface AuthContextType {
   user: User | null
-  clerkUser: ReturnType<typeof useUser>['user'] | null
   loading: boolean
+  login: (email: string, password: string) => Promise<void>
+  register: (email: string, password: string, name?: string) => Promise<void>
   logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { user: clerkUser, isLoaded: clerkLoaded } = useUser()
-  const { getToken, signOut } = useClerkAuth()
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-  const syncedUserIdRef = useRef<string | null>(null)
-  const isSyncingRef = useRef(false)
 
   useEffect(() => {
-    if (!clerkLoaded) {
-      setLoading(true)
-      return
-    }
-
-    let isMounted = true
-
-    const syncUser = async () => {
-      // Prevent concurrent syncs
-      if (isSyncingRef.current) return
-      
-      if (clerkUser) {
-        // Only sync if user ID changed
-        if (syncedUserIdRef.current === clerkUser.id) {
-          if (isMounted) {
-            setLoading(false)
-          }
+    const restoreSession = async () => {
+      try {
+        const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
+        if (!token) {
+          setUser(null)
+          setLoading(false)
           return
         }
 
-        isSyncingRef.current = true
-        syncedUserIdRef.current = clerkUser.id
-
-        try {
-          // Get Clerk session token for backend using useAuth hook
-          const token = await getToken()
-          
-          // Store token for backend API calls
-          if (typeof window !== 'undefined' && token) {
-            localStorage.setItem('clerk_token', token)
-          }
-          
-          // Sync user with backend
-          try {
-            const response = await api.post('/auth/clerk', {
-              clerkId: clerkUser.id,
-              email: clerkUser.primaryEmailAddress?.emailAddress,
-              name: clerkUser.fullName || clerkUser.firstName || undefined
-            })
-            
-            if (isMounted) {
-              setUser(response.data.user)
-              setLoading(false)
-            }
-          } catch (error: any) {
-            console.error('Backend sync error:', error)
-            // If backend sync fails, use Clerk user data
-            if (isMounted) {
-              setUser({
-                id: 0,
-                email: clerkUser.primaryEmailAddress?.emailAddress || '',
-                name: clerkUser.fullName || undefined
-              })
-              setLoading(false)
-            }
-          }
-        } catch (error) {
-          console.error('Error getting Clerk token:', error)
-          if (isMounted) {
-            setLoading(false)
-          }
-        } finally {
-          isSyncingRef.current = false
-        }
-      } else {
-        syncedUserIdRef.current = null
+        api.defaults.headers.common.Authorization = `Bearer ${token}`
+        const response = await api.get('/auth/me')
+        setUser(response.data.user)
+      } catch (error) {
         if (typeof window !== 'undefined') {
-          localStorage.removeItem('clerk_token')
+          localStorage.removeItem('auth_token')
         }
-        if (isMounted) {
-          setUser(null)
-          setLoading(false)
-        }
-        isSyncingRef.current = false
+        setUser(null)
+      } finally {
+        setLoading(false)
       }
     }
 
-    syncUser()
+    restoreSession()
+  }, [])
 
-    return () => {
-      isMounted = false
+  const login = async (email: string, password: string) => {
+    const response = await api.post('/auth/login', { email, password })
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('auth_token', response.data.token)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clerkUser?.id, clerkLoaded]) // getToken is stable from Clerk hook
+    api.defaults.headers.common.Authorization = `Bearer ${response.data.token}`
+    setUser(response.data.user)
+  }
+
+  const register = async (email: string, password: string, name?: string) => {
+    const response = await api.post('/auth/register', { email, password, name })
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('auth_token', response.data.token)
+    }
+    api.defaults.headers.common.Authorization = `Bearer ${response.data.token}`
+    setUser(response.data.user)
+  }
 
   const logout = async () => {
-    await signOut()
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('clerk_token')
+      localStorage.removeItem('auth_token')
     }
+    delete api.defaults.headers.common.Authorization
     setUser(null)
-    syncedUserIdRef.current = null
   }
 
   return (
-    <AuthContext.Provider value={{ user, clerkUser, loading, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   )

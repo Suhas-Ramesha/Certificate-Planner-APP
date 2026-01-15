@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import api from '@/lib/api'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { TrendingUp, Clock, CheckCircle } from 'lucide-react'
+import { useAuth } from '@/lib/auth-context'
 
 interface ProgressData {
   roadmap_topic_id: number
@@ -21,6 +22,7 @@ interface WeeklyProgress {
 }
 
 export default function ProgressView() {
+  const { user, loading: authLoading } = useAuth()
   const [roadmaps, setRoadmaps] = useState<any[]>([])
   const [selectedRoadmapId, setSelectedRoadmapId] = useState<number | null>(null)
   const [progress, setProgress] = useState<ProgressData[]>([])
@@ -28,8 +30,13 @@ export default function ProgressView() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (authLoading) return
+    if (!user) {
+      setLoading(false)
+      return
+    }
     fetchRoadmaps()
-  }, [])
+  }, [authLoading, user])
 
   useEffect(() => {
     if (selectedRoadmapId) {
@@ -96,6 +103,22 @@ export default function ProgressView() {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+      </div>
+    )
+  }
+
+  if (!authLoading && !user) {
+    return (
+      <div className="text-center py-16">
+        <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-r from-green-100 to-emerald-200 rounded-full mb-6">
+          <TrendingUp className="w-12 h-12 text-green-600" />
+        </div>
+        <h3 className="text-2xl font-bold text-gray-900 mb-3">
+          Sign in to track progress
+        </h3>
+        <p className="text-gray-600 max-w-md mx-auto">
+          Log in to view your learning stats and weekly progress.
+        </p>
       </div>
     )
   }

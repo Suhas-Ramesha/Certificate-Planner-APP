@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { UserButton, SignedIn, SignedOut, SignInButton } from '@clerk/nextjs'
 import { 
   BookOpen, 
   Award, 
@@ -13,6 +12,7 @@ import {
   Bell
 } from 'lucide-react'
 import Link from 'next/link'
+import { useAuth } from '@/lib/auth-context'
 
 interface NavbarProps {
   activeTab?: string
@@ -21,6 +21,7 @@ interface NavbarProps {
 
 export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const { user, loading, logout } = useAuth()
 
   const tabs = [
     { id: 'roadmap', label: 'Roadmap', icon: BookOpen, href: '/dashboard' },
@@ -72,24 +73,36 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
           {/* Right Side - User Menu */}
           <div className="flex items-center gap-4">
             {/* Notifications */}
-            <SignedIn>
+            {user && (
               <button className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
                 <Bell className="w-5 h-5" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
               </button>
-            </SignedIn>
+            )}
 
-            {/* Clerk User Button */}
-            <SignedIn>
-              <UserButton afterSignOutUrl="/" />
-            </SignedIn>
-            <SignedOut>
-              <SignInButton mode="modal">
-                <button className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
-                  Sign In
+            {!loading && user ? (
+              <div className="flex items-center gap-3">
+                <div className="hidden sm:flex flex-col text-right">
+                  <span className="text-sm font-semibold text-gray-800">
+                    {user.name || user.email}
+                  </span>
+                  <span className="text-xs text-gray-500">{user.email}</span>
+                </div>
+                <button
+                  onClick={logout}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Sign Out
                 </button>
-              </SignInButton>
-            </SignedOut>
+              </div>
+            ) : (
+              <Link
+                href="/"
+                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+              >
+                Sign In
+              </Link>
+            )}
 
             {/* Mobile Menu Button */}
             <button

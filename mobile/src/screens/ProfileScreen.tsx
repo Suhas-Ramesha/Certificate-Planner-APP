@@ -280,7 +280,7 @@ export default function ProfileScreen() {
 
             <View style={styles.infoCard}>
               <View style={styles.infoHeader}>
-                <Ionicons name="target-outline" size={24} color={colors.primary} />
+                <Ionicons name="flag-outline" size={24} color={colors.primary} />
                 <Text style={styles.infoTitle}>Learning Goals</Text>
               </View>
               <Text style={styles.infoText}>

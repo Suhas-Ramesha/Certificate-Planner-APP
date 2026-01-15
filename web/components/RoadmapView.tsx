@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import api from '@/lib/api'
 import { Sparkles, Play, List, Loader2, Clock } from 'lucide-react'
 import RoadmapLoading from './RoadmapLoading'
+import { useAuth } from '@/lib/auth-context'
 
 interface Roadmap {
   id: number
@@ -23,6 +24,7 @@ interface Topic {
 }
 
 export default function RoadmapView() {
+  const { user, loading: authLoading } = useAuth()
   const [roadmaps, setRoadmaps] = useState<Roadmap[]>([])
   const [selectedRoadmap, setSelectedRoadmap] = useState<Roadmap | null>(null)
   const [loading, setLoading] = useState(false)
@@ -30,8 +32,10 @@ export default function RoadmapView() {
   const [youtubeResources, setYoutubeResources] = useState<Record<number, any[]>>({})
 
   useEffect(() => {
+    if (authLoading) return
+    if (!user) return
     fetchRoadmaps()
-  }, [])
+  }, [authLoading, user])
 
   const fetchRoadmaps = async () => {
     setLoading(true)
@@ -68,6 +72,22 @@ export default function RoadmapView() {
 
   if (generating) {
     return <RoadmapLoading />
+  }
+
+  if (!authLoading && !user) {
+    return (
+      <div className="text-center py-16">
+        <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-r from-primary-100 to-primary-200 rounded-full mb-6">
+          <Sparkles className="w-12 h-12 text-primary-600" />
+        </div>
+        <h3 className="text-2xl font-bold text-gray-900 mb-3">
+          Sign in to see your roadmaps
+        </h3>
+        <p className="text-gray-600 max-w-md mx-auto">
+          Create an account or sign in to generate personalized learning roadmaps.
+        </p>
+      </div>
+    )
   }
 
   const fetchYoutubeResources = async (topicId: number) => {

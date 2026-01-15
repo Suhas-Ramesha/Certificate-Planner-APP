@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useAuth as useClerkAuth, useUser } from '@clerk/clerk-expo';
 import api from '../config/api';
 
 interface User {
@@ -11,74 +10,84 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  clerkUser: ReturnType<typeof useUser>['user'] | null;
   loading: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, name?: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const { user: clerkUser, isLoaded: clerkLoaded } = useUser();
-  const { signOut } = useClerkAuth();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!clerkLoaded) {
-      return;
-    }
-
-    const syncUser = async () => {
-      if (clerkUser) {
-        try {
-          // Get Clerk session token for backend
-          const token = await clerkUser.getToken();
-          
-          // Store token for backend API calls
-          if (token) {
-            await AsyncStorage.setItem('clerk_token', token);
-          }
-          
-          // Sync user with backend
-          try {
-            const response = await api.post('/auth/clerk', {
-              clerkId: clerkUser.id,
-              email: clerkUser.primaryEmailAddress?.emailAddress,
-              name: clerkUser.fullName || clerkUser.firstName || undefined
-            });
-            
-            setUser(response.data.user);
-          } catch (error: any) {
-            console.error('Backend sync error:', error);
-            // If backend sync fails, use Clerk user data
-            setUser({
-              id: 0,
-              email: clerkUser.primaryEmailAddress?.emailAddress || '',
-              name: clerkUser.fullName || undefined
-            });
-          }
-        } catch (error) {
-          console.error('Error getting Clerk token:', error);
-        }
-      } else {
+    const restoreSession = async () => {
+      try {
         await AsyncStorage.removeItem('clerk_token');
+        const token = await AsyncStorage.getItem('auth_token');
+        if (!token) {
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+
+        api.defaults.headers.common.Authorization = `Bearer ${token}`;
+        const response = await api.get('/auth/me');
+        setUser(response.data.user);
+      } catch (error) {
+        await AsyncStorage.removeItem('auth_token');
         setUser(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
-    syncUser();
-  }, [clerkUser, clerkLoaded]);
+    restoreSession();
+  }, []);
+
+  useEffect(() => {
+    const interceptorId = api.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        const status = error.response?.status;
+        if (status === 401 || status === 403) {
+          await AsyncStorage.removeItem('auth_token');
+          delete api.defaults.headers.common.Authorization;
+          setUser(null);
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    return () => {
+      api.interceptors.response.eject(interceptorId);
+    };
+  }, []);
+
+  const login = async (email: string, password: string) => {
+    const response = await api.post('/auth/login', { email, password });
+    await AsyncStorage.setItem('auth_token', response.data.token);
+    api.defaults.headers.common.Authorization = `Bearer ${response.data.token}`;
+    setUser(response.data.user);
+  };
+
+  const register = async (email: string, password: string, name?: string) => {
+    const response = await api.post('/auth/register', { email, password, name });
+    await AsyncStorage.setItem('auth_token', response.data.token);
+    api.defaults.headers.common.Authorization = `Bearer ${response.data.token}`;
+    setUser(response.data.user);
+  };
 
   const logout = async () => {
-    await signOut();
-    await AsyncStorage.removeItem('clerk_token');
+    await AsyncStorage.removeItem('auth_token');
+    delete api.defaults.headers.common.Authorization;
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, clerkUser, loading, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

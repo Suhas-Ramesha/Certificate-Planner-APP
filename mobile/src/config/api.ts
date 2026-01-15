@@ -1,8 +1,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Render backend URL
-const API_URL = 'https://learning-planner-backend.onrender.com';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://learning-planner-backend.onrender.com';
 
 const api = axios.create({
   baseURL: `${API_URL}/api`,
@@ -11,9 +10,9 @@ const api = axios.create({
   },
 });
 
-// Add Clerk token to requests
+// Add auth token to requests
 api.interceptors.request.use(async (config) => {
-  const token = await AsyncStorage.getItem('clerk_token');
+  const token = await AsyncStorage.getItem('auth_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -24,8 +23,8 @@ api.interceptors.request.use(async (config) => {
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
-      await AsyncStorage.removeItem('clerk_token');
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      await AsyncStorage.removeItem('auth_token');
     }
     return Promise.reject(error);
   }

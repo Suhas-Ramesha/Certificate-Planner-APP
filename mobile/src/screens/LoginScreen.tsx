@@ -10,9 +10,9 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { useSignIn, useSignUp } from '@clerk/clerk-expo';
 import { useTheme } from '../context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../context/AuthContext';
 
 export default function LoginScreen() {
   const [isLogin, setIsLogin] = useState(true);
@@ -22,11 +22,28 @@ export default function LoginScreen() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const { signIn, setActive, isLoaded: signInLoaded } = useSignIn();
-  const { signUp, setActive: setActiveSignUp, isLoaded: signUpLoaded } = useSignUp();
   const { colors } = useTheme();
+  const { login, register } = useAuth();
   
   const styles = createStyles(colors);
+  const getAuthErrorMessage = (err: any) => {
+    const message =
+      err.response?.data?.error ||
+      err.response?.data?.errors?.[0]?.msg ||
+      err.message ||
+      'An error occurred';
+    const normalized = String(message).toLowerCase();
+    if (normalized.includes('user already exists')) {
+      return 'Account already exists. Please sign in instead.';
+    }
+    if (normalized.includes('invalid credentials')) {
+      return 'Invalid email or password. Try again.';
+    }
+    if (normalized.includes('access token required') || normalized.includes('invalid or expired token')) {
+      return 'Your session expired. Please sign in again.';
+    }
+    return message;
+  };
 
   const handleSubmit = async () => {
     setError('');
@@ -34,50 +51,12 @@ export default function LoginScreen() {
 
     try {
       if (isLogin) {
-        if (!signInLoaded) {
-          setError('Sign in not ready. Please wait...');
-          return;
-        }
-
-        const result = await signIn.create({
-          identifier: email,
-          password: password,
-        });
-
-        if (result.status === 'complete') {
-          await setActive({ session: result.createdSessionId });
-          // AuthContext will handle the rest
-        } else {
-          setError('Sign in incomplete. Please try again.');
-        }
+        await login(email, password);
       } else {
-        if (!signUpLoaded) {
-          setError('Sign up not ready. Please wait...');
-          return;
-        }
-
-        const result = await signUp.create({
-          emailAddress: email,
-          password: password,
-          firstName: name || undefined,
-        });
-
-        // Send email verification if needed
-        if (result.status === 'missing_requirements') {
-          await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
-          setError('Please check your email for verification code.');
-          return;
-        }
-
-        if (result.status === 'complete') {
-          await setActiveSignUp({ session: result.createdSessionId });
-          // AuthContext will handle the rest
-        } else {
-          setError('Sign up incomplete. Please try again.');
-        }
+        await register(email, password, name || undefined);
       }
     } catch (err: any) {
-      setError(err.errors?.[0]?.message || 'An error occurred');
+      setError(getAuthErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -132,7 +111,7 @@ export default function LoginScreen() {
                 style={styles.passwordInput}
                 value={password}
                 onChangeText={setPassword}
-                placeholder="••••••••"
+                placeholder="********"
                 placeholderTextColor={colors.placeholder}
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
@@ -159,7 +138,7 @@ export default function LoginScreen() {
           <TouchableOpacity
             style={[styles.button, loading && styles.buttonDisabled]}
             onPress={handleSubmit}
-            disabled={loading || (isLogin ? !signInLoaded : !signUpLoaded)}
+            disabled={loading}
           >
             {loading ? (
               <ActivityIndicator color="#fff" />
