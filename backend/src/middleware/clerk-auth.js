@@ -1,4 +1,4 @@
-import { clerkClient, verifyToken } from '@clerk/express';
+import { createClerkClient, verifyToken } from '@clerk/express';
 import { pool } from '../database/connection.js';
 import jwt from 'jsonwebtoken';
 
@@ -33,7 +33,9 @@ async function verifyClerkTokenAndGetUser(token) {
       throw new Error('CLERK_SECRET_KEY is not set in environment variables');
     }
     
-    const clerk = clerkClient();
+    const clerk = createClerkClient({
+      secretKey: process.env.CLERK_SECRET_KEY
+    });
     
     // Get user details from Clerk (this also verifies the token is valid)
     // If the token is invalid, this will throw an error
