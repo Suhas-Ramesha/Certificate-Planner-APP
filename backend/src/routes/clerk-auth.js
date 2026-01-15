@@ -1,11 +1,12 @@
 import express from 'express';
 import { pool } from '../database/connection.js';
-import { authenticateClerkToken } from '../middleware/clerk-auth.js';
+import { authenticateClerkToken, verifyClerkTokenOnly } from '../middleware/clerk-auth.js';
 
 const router = express.Router();
 
 // Sync Clerk user with your database
-router.post('/clerk', authenticateClerkToken, async (req, res) => {
+// This endpoint verifies the token but doesn't require the user to exist in DB yet
+router.post('/clerk', verifyClerkTokenOnly, async (req, res) => {
   try {
     const { clerkId, email, name } = req.user;
 
