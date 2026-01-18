@@ -10,7 +10,7 @@ CertPlanner is a full-stack learning and certification planner that builds perso
 - Tracks progress and weekly milestones
 
 ## Live links
-- Web app: https://certificate-planner-web.vercel.app/
+- Web app(identical to app UI): https://certificate-planner-web.vercel.app/
 - iOS (Expo app): exp+://expo-development-client/?url=https://u.expo.dev/03577257-9000-4315-96e9-cb2f6b69aa05/group/447b4543-cbdc-4a70-9f8d-1ebdc9cf42a7
 - Android APK download: [Certificate Planner Andriod.apk](Certificate%20Planner%20Andriod.apk)
 
